@@ -61,7 +61,12 @@ router.post('/login', uploader.none(), async(req, res, next) => {
 
 
 router.post('/register', uploader.none(), async(req, res, next) => {
-    const user = await db.get(`SELECT * FROM users WHERE username = "${req.body.username}" OR email ="${req.body.email}"`)
+    let user
+    if(req.body.email) {
+        user = await db.get(`SELECT * FROM users WHERE email ="${req.body.email}" AND username = "${req.body.username}"`)
+    } else {
+        user = await db.get(`SELECT * FROM users WHERE username = "${req.body.username}"`)
+    }
     // 找不到返回undefined
     if(user) {
         res.json({
