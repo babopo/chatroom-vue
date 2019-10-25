@@ -1,4 +1,5 @@
 const express = require('express')
+const compression = require('compression')
 const app = express()
 
 
@@ -65,7 +66,8 @@ io.on('connection', async socket => {
     })
 })
 
-
+// gzip压缩
+app.use(compression())
 //前置过滤器
 app.use(cookieParser(cookieSignature))
 // 跨域设置，允许所有跨域请求，带cookie的跨域必须设置

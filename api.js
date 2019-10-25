@@ -171,27 +171,16 @@ router.post('/avatar', uploader.none(), async (req, res, next) => {
 router.post('/settings/upload', uploader.single('avatar'), async (req, res, next) => {
     // 更新头像
     const filePath = __dirname + '/static/avatars/' + req.file.filename
-    if (/image/.test(req.file.mimetype)) {
-        // 判断上传的是否是图片
-        imgBuffer = await fsp.readFile(filePath).catch(err => new Error())
-        // 上传奇怪的图像格式可能抛错
-        if(imgBuffer instanceof Error) {
-            fs.unlink(filePath)
-            res.json({
-                code: 1,
-                msg: '文件格式不支持'
-            })
-        } else {
-            await sharp(imgBuffer).resize(100, 100).toFile(filePath)
-            //将图片统一大小后重新保存
-            await db.run(`UPDATE users SET avatar = "${req.signedCookies.username}" WHERE username = "${req.signedCookies.username}"`)
-            res.json({
-                code: 1,
-                msg: '更新头像成功'
-            })
-        }
-    } else {
-        //不是图片直接删掉
+    try {
+        imgBuffer = await fsp.readFile(filePath)
+        await sharp(imgBuffer).resize(100, 100).toFile(filePath)
+        //将图片统一大小后重新保存
+        await db.run(`UPDATE users SET avatar = "${req.signedCookies.username}" WHERE username = "${req.signedCookies.username}"`)
+        res.json({
+            code: 1,
+            msg: '更新头像成功'
+        })
+    } catch(e) {
         fs.unlink(filePath)
         res.json({
             code: 1,
