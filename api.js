@@ -107,7 +107,7 @@ router.post('/forget', uploader.none(), async(req, res, next) => {
     const user = await db.get(`SELECT * FROM users WHERE ${req.body.method} = "${req.body.val}"`)
     if(user && user.email) {
         const token = Math.random().toString().slice(2)
-        const tempURL = 'http://chat-vue.limbotech.top:8000/api/passwordChanging/' + token
+        const tempURL = 'http://chat-vue.limbotech.top:8000/#/passwordChanging/' + token
         mailer.sendMail({
             from: '"Chat Room" <3184267367@qq.com>',
             to: user.email,
@@ -168,26 +168,37 @@ router.post('/settings/upload', uploader.single('avatar'), async (req, res, next
     const filePath = __dirname + '/static/avatars/' + req.file.filename
     if (/image/.test(req.file.mimetype)) {
         // 判断上传的是否是图片
-        imgBuffer = await fsp.readFile(filePath)
-        await sharp(imgBuffer).resize(100, 100).toFile(filePath)
-        //将图片统一大小后重新保存
-        await db.run(`UPDATE users SET avatar = "${req.signedCookies.username}" WHERE username = "${req.signedCookies.username}"`)
-        res.json({
-            code: 1,
-            msg: '更新头像成功'
-        })
+        imgBuffer = await fsp.readFile(filePath).catch(err => new Error())
+        // 上传奇怪的图像格式可能抛错
+        if(imgBuffer instanceof Error) {
+            fs.unlink(filePath)
+            res.json({
+                code: 1,
+                msg: '文件格式不支持'
+            })
+        } else {
+            await sharp(imgBuffer).resize(100, 100).toFile(filePath)
+            //将图片统一大小后重新保存
+            await db.run(`UPDATE users SET avatar = "${req.signedCookies.username}" WHERE username = "${req.signedCookies.username}"`)
+            res.json({
+                code: 1,
+                msg: '更新头像成功'
+            })
+        }
     } else {
         //不是图片直接删掉
         fs.unlink(filePath)
         res.json({
             code: 1,
-            msg: '请上传图像格式文件'
+            msg: '文件格式不支持'
         })
     }
 })
 
 router.post('/passwordChanging', uploader.none(), async (req, res, next) => {
+    console.log('token',req.body.token)
     const change = await db.get(`SELECT * FROM passwordChanging WHERE token = "${req.body.token}"`)
+    console.log('change',change)
     if(change) {
         await db.run(`UPDATE users SET password = "${chage.password}" WHERE uid = ${change.uid}`)
         await db.run(`DELETE FROM passwordChanging WHERE uid = ${change.uid}`)
