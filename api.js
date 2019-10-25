@@ -107,7 +107,7 @@ router.post('/forget', uploader.none(), async(req, res, next) => {
     const user = await db.get(`SELECT * FROM users WHERE ${req.body.method} = "${req.body.val}"`)
     if(user && user.email) {
         const token = Math.random().toString().slice(2)
-        const tempURL = 'http://chat-vue.limbotech.top/api/passwordChanging/' + token
+        const tempURL = 'http://chat-vue.limbotech.top:8000/api/passwordChanging/' + token
         mailer.sendMail({
             from: '"Chat Room" <3184267367@qq.com>',
             to: user.email,

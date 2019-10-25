@@ -78,7 +78,7 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded())
 // 静态文件
-app.use('static', express.static(__dirname + '/static'))
+app.use('/static', express.static(__dirname + '/static'))
 
 app.use('/api', api)
 
