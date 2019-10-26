@@ -3,8 +3,7 @@ const router = require('express').Router()
 
 const multer = require('multer')
 const sharp = require('sharp')
-const fs = require('fs')
-const fsp = fs.promises
+const fsp = require('fs').promises
 const nodemailer= require('nodemailer')
 
 // 因为前端发送的是form-data表单，所以需要multer处理
@@ -112,7 +111,7 @@ router.post('/forget', uploader.none(), async(req, res, next) => {
     const user = await db.get(`SELECT * FROM users WHERE ${req.body.method} = "${req.body.val}"`)
     if(user && user.email) {
         const token = Math.random().toString().slice(2)
-        const tempURL = 'http://chat-vue.limbotech.top:8000/#/passwordChanging/' + token
+        const tempURL = 'https://limbotech.top:8000/#/passwordChanging/' + token
         mailer.sendMail({
             from: '"Chat Room" <3184267367@qq.com>',
             to: user.email,

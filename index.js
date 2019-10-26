@@ -2,13 +2,15 @@ const express = require('express')
 const compression = require('compression')
 const app = express()
 
-
+const fs = require('fs')
 const cors = require('cors')
-const httpServer = require('http').createServer(app)
-const https = require('https')
+const options = {
+    key: fs.readFileSync("/root/.acme.sh/limbotech.top/limbotech.top.key"),
+    cert: fs.readFileSync("/root/.acme.sh/limbotech.top/limbotech.top.cer")
+}
+const httpsServer = require('https').createServer(options, app)
 
 const port = 8000
-const httpsPort = 443
 
 //处理相关请求的路由
 const api = require(__dirname + '/api.js')
@@ -18,7 +20,7 @@ const cookieParser = require('cookie-parser')
 const cookieSignature = 'chatRoom'
 
 // websocket
-const io = require('socket.io')(httpServer)
+const io = require('socket.io')(httpsServer)
 // 用let创建，因为下面要过滤
 let usersOL = []
 io.on('connection', async socket => {
@@ -72,7 +74,7 @@ app.use(compression())
 app.use(cookieParser(cookieSignature))
 // 跨域设置，允许所有跨域请求，带cookie的跨域必须设置
 app.use(cors({
-    origin: 'http://chat-vue.limbotech.top/',
+    origin: 'http://limbotech.top/',
     maxAge: 60 * 60 * 24,
     credentials: true,
 }))
@@ -91,6 +93,6 @@ app.get('/', (req, res, next) => {
 
 
 
-httpServer.listen(port, () => {
+httpsServer.listen(port, () => {
     console.log(port)
 })
